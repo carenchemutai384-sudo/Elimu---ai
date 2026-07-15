@@ -2,30 +2,128 @@ const askBtn = document.getElementById("askBtn");
 const quizBtn = document.getElementById("quizBtn");
 const notesBtn = document.getElementById("notesBtn");
 const dailyBtn = document.getElementById("dailyBtn");
+const themeToggle = document.getElementById("themeToggle");
+const subjectSelect = document.getElementById("subjectSelect");
 
 const questionInput = document.getElementById("question");
 const apiKeyInput = document.getElementById("apiKey");
-const answerBox = document.getElementById("answer");
+const chatLog = document.getElementById("chatLog");
 
-askBtn.addEventListener("click", askAI);
+const allActionButtons = [askBtn, quizBtn, notesBtn, dailyBtn].filter(Boolean);
+
+askBtn.addEventListener("click", handleAskAI);
 
 if (quizBtn) {
-    quizBtn.addEventListener("click", generateQuiz);
+    quizBtn.addEventListener("click", handleGenerateQuiz);
 }
 
 if (notesBtn) {
-    notesBtn.addEventListener("click", generateNotes);
+    notesBtn.addEventListener("click", handleGenerateNotes);
 }
 
 if (dailyBtn) {
-    dailyBtn.addEventListener("click", dailyChallenge);
+    dailyBtn.addEventListener("click", handleDailyChallenge);
+}
+
+if (questionInput) {
+    questionInput.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleAskAI();
+        }
+    });
+
+    questionInput.addEventListener("input", function () {
+        questionInput.style.height = "auto";
+        questionInput.style.height = questionInput.scrollHeight + "px";
+    });
+}
+
+function applyStoredTheme() {
+    const savedTheme = localStorage.getItem("mwalimu-theme");
+    if (savedTheme === "dark") {
+        document.documentElement.setAttribute("data-theme", "dark");
+        themeToggle.textContent = "☀️";
+    } else {
+        document.documentElement.removeAttribute("data-theme");
+        themeToggle.textContent = "🌙";
+    }
+}
+
+function toggleTheme() {
+    const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+    if (isDark) {
+        document.documentElement.removeAttribute("data-theme");
+        localStorage.setItem("mwalimu-theme", "light");
+        themeToggle.textContent = "🌙";
+    } else {
+        document.documentElement.setAttribute("data-theme", "dark");
+        localStorage.setItem("mwalimu-theme", "dark");
+        themeToggle.textContent = "☀️";
+    }
+}
+
+if (themeToggle) {
+    themeToggle.addEventListener("click", toggleTheme);
+    applyStoredTheme();
+}
+
+function getSubjectContext() {
+    const subject = subjectSelect ? subjectSelect.value : "";
+    if (subject === "") {
+        return "You are Elimu AI, an AI tutor for Kenyan KCSE students.";
+    }
+    return `You are an expert KCSE ${subject} teacher. Answer according to the Kenyan curriculum, using clear, exam-focused language appropriate for a KCSE student studying ${subject}.`;
+}
+
+function scrollChatToBottom() {
+    chatLog.scrollTop = chatLog.scrollHeight;
+}
+
+function appendUserMessage(text) {
+    const bubble = document.createElement("div");
+    bubble.className = "message user";
+    bubble.textContent = text;
+    chatLog.appendChild(bubble);
+    scrollChatToBottom();
+}
+
+function appendAIMessage(text) {
+    const bubble = document.createElement("div");
+    bubble.className = "message ai";
+    bubble.textContent = text;
+    chatLog.appendChild(bubble);
+    scrollChatToBottom();
+}
+
+function appendTypingIndicator() {
+    const bubble = document.createElement("div");
+    bubble.className = "message typing";
+    bubble.innerHTML = `<span class="typing-dots"><span>.</span><span>.</span><span>.</span></span>`;
+    chatLog.appendChild(bubble);
+    scrollChatToBottom();
+    return bubble;
+}
+
+function removeTypingIndicator(indicatorEl) {
+    if (indicatorEl && indicatorEl.parentNode) {
+        indicatorEl.parentNode.removeChild(indicatorEl);
+    }
+}
+
+function setButtonsDisabled(disabled) {
+    allActionButtons.forEach((btn) => {
+        if (!btn.hasAttribute("data-permanently-disabled")) {
+            btn.disabled = disabled;
+        }
+    });
 }
 
 function getApiKey() {
     return apiKeyInput.value.trim();
 }
 
-async function callGemini(prompt, loadingMessage) {
+async function callGemini(prompt) {
 
     const apiKey = getApiKey();
 
@@ -33,8 +131,6 @@ async function callGemini(prompt, loadingMessage) {
         alert("Please paste your Gemini API key.");
         return null;
     }
-
-    answerBox.innerHTML = `<p><strong>${loadingMessage}</strong></p>`;
 
     try {
 
@@ -60,54 +156,40 @@ async function callGemini(prompt, loadingMessage) {
         const data = await response.json();
 
         if (data.error) {
-            answerBox.innerHTML =
-                "<p style='color:red;'><strong>Error:</strong> " +
-                data.error.message +
-                "</p>";
-            return null;
+            return "⚠️ Error: " + data.error.message;
         }
 
         return data.candidates[0].content.parts[0].text;
 
     } catch (error) {
-
-        answerBox.innerHTML =
-            "<p style='color:red;'>Something went wrong. Check your internet connection or API key.</p>";
-
         console.error(error);
-        return null;
-
+        return "⚠️ Something went wrong. Check your internet connection or API key.";
     }
 
 }
 
-function showResult(text) {
-    answerBox.innerHTML = `
-        <div style="
-            margin-top:20px;
-            padding:20px;
-            background:white;
-            border-radius:10px;
-            box-shadow:0 2px 10px rgba(0,0,0,.1);
-            white-space:pre-wrap;
-            line-height:1.7;
-        ">
-            ${text}
-        </div>
-    `;
-}
-
-async function askAI() {
+async function handleAskAI() {
 
     const question = questionInput.value.trim();
 
     if (question === "") {
-        alert("Please enter a question.");
         return;
     }
 
+    if (getApiKey() === "") {
+        alert("Please paste your Gemini API key.");
+        return;
+    }
+
+    appendUserMessage(question);
+    questionInput.value = "";
+    questionInput.style.height = "auto";
+
+    setButtonsDisabled(true);
+    const typingIndicator = appendTypingIndicator();
+
     const prompt =
-`You are Elimu AI, an AI tutor for Kenyan KCSE students.
+`${getSubjectContext()}
 
 Always answer using this format:
 
@@ -129,22 +211,38 @@ KCSE Tip
 Student's Question:
 ${question}`;
 
-    const answer = await callGemini(prompt, "Thinking...");
-    if (answer) showResult(answer);
+    const answer = await callGemini(prompt);
+
+    removeTypingIndicator(typingIndicator);
+    setButtonsDisabled(false);
+
+    if (answer) appendAIMessage(answer);
 
 }
 
-async function generateQuiz() {
+async function handleGenerateQuiz() {
 
     const question = questionInput.value.trim();
 
     if (question === "") {
-        alert("Type a topic in the question box first (e.g. 'Photosynthesis' or 'Quadratic equations'), then tap Generate Quiz.");
+        alert("Type a topic in the box first (e.g. 'Photosynthesis' or 'Quadratic equations'), then tap Generate Quiz.");
         return;
     }
 
+    if (getApiKey() === "") {
+        alert("Please paste your Gemini API key.");
+        return;
+    }
+
+    appendUserMessage("⭐ Generate Quiz: " + question);
+    questionInput.value = "";
+    questionInput.style.height = "auto";
+
+    setButtonsDisabled(true);
+    const typingIndicator = appendTypingIndicator();
+
     const prompt =
-`You are Mwalimu AI, a KCSE quiz generator.
+`${getSubjectContext()}
 
 Create a 5-question multiple choice quiz on this topic: "${question}"
 
@@ -160,22 +258,40 @@ Format each question exactly like this:
 
 Make the questions KCSE exam-style, and make the wrong answer options genuinely plausible, not obviously wrong.`;
 
-    const quiz = await callGemini(prompt, "Generating quiz...");
-    if (quiz) showResult(quiz);
+    const quiz = await callGemini(prompt);
+
+    removeTypingIndicator(typingIndicator);
+    setButtonsDisabled(false);
+
+    if (quiz) appendAIMessage(quiz);
 
 }
 
-async function generateNotes() {
+async function handleGenerateNotes() {
 
     const question = questionInput.value.trim();
 
     if (question === "") {
-        alert("Type a topic in the question box first (e.g. 'The French Revolution' or 'Cell division'), then tap Revision Notes.");
+        alert("Type a topic in the box first (e.g. 'The French Revolution' or 'Cell division'), then tap Revision Notes.");
         return;
     }
 
+    if (getApiKey() === "") {
+        alert("Please paste your Gemini API key.");
+        return;
+    }
+
+    appendUserMessage("📄 Revision Notes: " + question);
+    questionInput.value = "";
+    questionInput.style.height = "auto";
+
+    setButtonsDisabled(true);
+    const typingIndicator = appendTypingIndicator();
+
     const prompt =
-`You are Mwalimu AI, helping a KCSE student revise quickly before an exam.
+`${getSubjectContext()}
+
+You are helping a KCSE student revise quickly before an exam.
 
 Create concise revision notes on this topic: "${question}"
 
@@ -198,12 +314,21 @@ Common Exam Mistakes
 
 Keep it short and scannable — this is for last-minute revision, not a full lesson.`;
 
-    const notes = await callGemini(prompt, "Generating notes...");
-    if (notes) showResult(notes);
+    const notes = await callGemini(prompt);
+
+    removeTypingIndicator(typingIndicator);
+    setButtonsDisabled(false);
+
+    if (notes) appendAIMessage(notes);
 
 }
 
-async function dailyChallenge() {
+async function handleDailyChallenge() {
+
+    if (getApiKey() === "") {
+        alert("Please paste your Gemini API key.");
+        return;
+    }
 
     const subjects = [
         "Biology", "Chemistry", "Mathematics", "Computer Studies",
@@ -211,16 +336,23 @@ async function dailyChallenge() {
         "History", "CRE", "Agriculture", "Business Studies"
     ];
 
-    const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
+    const selectedSubject = subjectSelect && subjectSelect.value !== ""
+        ? subjectSelect.value
+        : subjects[Math.floor(Math.random() * subjects.length)];
+
+    appendUserMessage("🔥 Daily Challenge: " + selectedSubject);
+
+    setButtonsDisabled(true);
+    const typingIndicator = appendTypingIndicator();
 
     const prompt =
 `You are Mwalimu AI, setting today's KCSE Daily Challenge question.
 
-Subject: ${randomSubject}
+Subject: ${selectedSubject}
 
 Create ONE challenging KCSE-style question on this subject (any topic within it), formatted like this:
 
-🔥 Daily Challenge — ${randomSubject}
+🔥 Daily Challenge — ${selectedSubject}
 
 Question:
 [question text]
@@ -235,7 +367,11 @@ Explanation:
 
 Make it genuinely challenging — the kind of question that separates a B student from an A student.`;
 
-    const challenge = await callGemini(prompt, "Loading today's challenge...");
-    if (challenge) showResult(challenge);
+    const challenge = await callGemini(prompt);
+
+    removeTypingIndicator(typingIndicator);
+    setButtonsDisabled(false);
+
+    if (challenge) appendAIMessage(challenge);
 
 }

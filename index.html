@@ -11,6 +11,7 @@
 <body>
 
 <header>
+    <button id="themeToggle" class="theme-toggle" title="Toggle dark mode">🌙</button>
     <h1>🎓 Mwalimu AI</h1>
     <p>Your AI Learning Assistant for KCSE</p>
 </header>
@@ -23,6 +24,25 @@
   id="apiKey"
   placeholder="Paste your Gemini API key"
   style="width:100%;padding:12px;margin-bottom:15px;">
+
+<label for="subjectSelect" style="display:block;margin-bottom:8px;font-weight:bold;">
+Choose a subject (optional):
+</label>
+<select id="subjectSelect">
+    <option value="">General / No specific subject</option>
+    <option value="Mathematics">Mathematics</option>
+    <option value="English">English</option>
+    <option value="Kiswahili">Kiswahili</option>
+    <option value="Biology">Biology</option>
+    <option value="Chemistry">Chemistry</option>
+    <option value="Physics">Physics</option>
+    <option value="History">History</option>
+    <option value="Geography">Geography</option>
+    <option value="CRE">CRE</option>
+    <option value="Business Studies">Business Studies</option>
+    <option value="Agriculture">Agriculture</option>
+    <option value="Computer Studies">Computer Studies</option>
+</select>
 
 <div id="answer"></div>
 
@@ -83,6 +103,10 @@ Ask AI
 </section>
 
 </main>
+
+<footer>
+    Mwalimu AI v1.1
+</footer>
 
 <script src="script.js"></script>
 

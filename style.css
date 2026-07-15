@@ -1,15 +1,46 @@
+:root {
+    --bg-color: #f4f7fb;
+    --text-color: #222;
+    --header-bg: #0d47a1;
+    --header-text: #ffffff;
+    --card-bg: #ffffff;
+    --input-bg: #ffffff;
+    --input-border: #cccccc;
+    --btn-primary: #1565c0;
+    --btn-green: #2e7d32;
+    --shadow: rgba(0,0,0,0.1);
+}
+
+[data-theme="dark"] {
+    --bg-color: #121826;
+    --text-color: #e8ecf1;
+    --header-bg: #0a1f44;
+    --header-text: #ffffff;
+    --card-bg: #1c2436;
+    --input-bg: #232c40;
+    --input-border: #3a4560;
+    --btn-primary: #3f7ae0;
+    --btn-green: #3fa055;
+    --shadow: rgba(0,0,0,0.4);
+}
+
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background: #f4f7fb;
-    color: #222;
+    background: var(--bg-color);
+    color: var(--text-color);
 }
 
 header {
-    background: #0d47a1;
-    color: white;
+    background: var(--header-bg);
+    color: var(--header-text);
     text-align: center;
     padding: 30px 20px;
+    position: relative;
 }
 
 header h1 {
@@ -22,23 +53,47 @@ header p {
     font-size: 1.1rem;
 }
 
+.theme-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255,255,255,0.15);
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    font-size: 1.3rem;
+    cursor: pointer;
+    color: var(--header-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-toggle:hover {
+    background: rgba(255,255,255,0.25);
+}
+
 .hero {
     padding: 30px 20px;
     text-align: center;
 }
 
 .hero h2 {
-    color: #0d47a1;
+    color: var(--btn-primary);
 }
 
-.hero input {
+.hero input,
+.hero select {
     width: 90%;
     max-width: 500px;
     padding: 14px;
     border-radius: 8px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--input-border);
     margin-top: 15px;
     font-size: 16px;
+    background: var(--input-bg);
+    color: var(--text-color);
 }
 
 .hero button {
@@ -46,7 +101,7 @@ header p {
     padding: 14px 30px;
     border: none;
     border-radius: 8px;
-    background: #1565c0;
+    background: var(--btn-primary);
     color: white;
     font-size: 16px;
     cursor: pointer;
@@ -68,12 +123,12 @@ header p {
 }
 
 .card {
-    background: white;
+    background: var(--card-bg);
     padding: 20px;
     border-radius: 10px;
     text-align: center;
     font-weight: bold;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 3px 8px var(--shadow);
 }
 
 .features {
@@ -86,7 +141,7 @@ header p {
     padding: 15px;
     border: none;
     border-radius: 10px;
-    background: #2e7d32;
+    background: var(--btn-green);
     color: white;
     font-size: 16px;
     cursor: pointer;
@@ -95,4 +150,21 @@ header p {
 .features button:hover,
 .hero button:hover {
     opacity: 0.9;
+}
+
+.features button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#answer {
+    text-align: left;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 0.85rem;
+    color: var(--text-color);
+    opacity: 0.6;
 }

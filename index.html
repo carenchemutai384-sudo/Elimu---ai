@@ -44,8 +44,6 @@ Choose a subject (optional):
     <option value="Computer Studies">Computer Studies</option>
 </select>
 
-<div id="answer"></div>
-
 <p style="font-size:14px;color:#666;">
 Your Gemini API key is stored only in your browser and is never saved to GitHub.
 </p>
@@ -56,14 +54,16 @@ Your Gemini API key is stored only in your browser and is never saved to GitHub.
 Ask questions, revise notes, generate quizzes and prepare for KCSE using AI.
 </p>
 
-<input
-type="text"
-placeholder="Ask any KCSE question..."
-id="question">
+<div id="chatLog" class="chat-log"></div>
 
-<button id="askBtn">
-Ask AI
-</button>
+<div class="chat-input-row">
+    <textarea
+        id="question"
+        placeholder="Ask any KCSE question... (Enter to send, Shift+Enter for new line)"
+        rows="1"
+    ></textarea>
+    <button id="askBtn">Send</button>
+</div>
 
 </section>
 
@@ -105,7 +105,7 @@ Ask AI
 </main>
 
 <footer>
-    Mwalimu AI v1.1
+    Mwalimu AI v1.2
 </footer>
 
 <script src="script.js"></script>

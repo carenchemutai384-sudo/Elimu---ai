@@ -1,39 +1,3 @@
-const askBtn = document.getElementById("askBtn");
-const questionInput = document.getElementById("question");
-const apiKeyInput = document.getElementById("apiKey");
-const answerBox = document.getElementById("answer");
-
-askBtn.addEventListener("click", askAI);
-
-async function askAI() {
-
-    const question = questionInput.value.trim();
-    const apiKey = apiKeyInput.value.trim();
-
-    if (apiKey === "") {
-        alert("Please paste your Gemini API key.");
-        return;
-    }
-
-    if (question === "") {
-        alert("Please enter a question.");
-        return;
-    }
-
-    answerBox.innerHTML = `
-        <p><strong>Thinking...</strong></p>
-    `;
-
-    try {
-
-        const response = await fetch(
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=" + apiKey,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
                     contents: [
                         {
                             parts: [
